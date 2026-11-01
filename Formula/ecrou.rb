@@ -5,13 +5,12 @@
 class Ecrou < Formula
   desc "a small microVM runtime based on libkrun"
   homepage "https://github.com/vhaudiquet/ecrou"
-  url "https://github.com/vhaudiquet/ecrou/archive/refs/tags/v0.2.0.tar.gz"
-  sha256 "a0ab6d64aaf1d574bb06330d8cadc283e73e43efa190e500935996237e012509"
+  url "https://github.com/vhaudiquet/ecrou/releases/download/v0.2.0/ecrou-v0.2.0-darwin-arm64.tar.gz"
+  sha256 "3b3bc6e80e06f560b22ba138f146db0196d8014ee5ac36b5b394a5fd6071c069"
   license "MIT"
 
   # libkrun's Hypervisor.framework backend is arm64-only upstream.
   depends_on arch: :arm64
-  depends_on "rust" => :build
   depends_on "libkrun/homebrew-krun/libkrun"
   depends_on "e2fsprogs"
   # A libarchive-capable mke2fs populates ext4 images from tarballs in
@@ -19,13 +18,11 @@ class Ecrou < Formula
   depends_on "libarchive"
 
   def install
-    system "cargo", "build", "--release"
-    bin.install "target/release/ecrou"
-    # Hypervisor.framework grants VM creation only to binaries signed
-    # with the hypervisor entitlement; on current macOS the signature
-    # is a hard requirement, the same one krunkit's formula carries.
-    system "codesign", "--force", "--sign", "-",
-      "--entitlements", "packaging/homebrew/ecrou.entitlements", bin/"ecrou"
+    # CI signed the binary with the hypervisor entitlement (a hard
+    # requirement on current macOS, the same one krunkit's formula
+    # signs for); a rebuild here would strip the signature, so the
+    # release tarball's binary is poured as-is.
+    bin.install "ecrou"
   end
 
   def caveats
